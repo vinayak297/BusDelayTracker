@@ -1,5 +1,9 @@
 const express = require("express");
 const app = express();
+const path = require("path");
+
+// Serve frontend
+app.use(express.static(path.join(__dirname, "public")));
 
 // In-memory bus state
 let bus = {
@@ -23,31 +27,27 @@ setInterval(() => {
   }
 }, 5000);
 
-// View bus status
+// API routes
 app.get("/bus", (req, res) => {
   res.json(bus);
 });
 
-// Crowd says: still waiting
 app.get("/still-waiting", (req, res) => {
   bus.waitingCount += 1;
 
-  // Only delay after 3 people confirm
   if (bus.waitingCount >= 3) {
     bus.delayMinutes += 2;
     bus.etaMinutes += 2;
     bus.status = "Delayed (confirmed by crowd)";
-    bus.waitingCount = 0; // reset after confirmation
+    bus.waitingCount = 0;
   }
 
   res.json(bus);
 });
 
-// Crowd confirms arrival
 app.get("/bus-arrived", (req, res) => {
   bus.status = "Arrived";
   bus.etaMinutes = 0;
-
   res.json(bus);
 });
 

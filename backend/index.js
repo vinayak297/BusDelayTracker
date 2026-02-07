@@ -1,5 +1,18 @@
 const express = require("express");
 const path = require("path");
+const express = require("express");
+const path = require("path");
+
+const app = express();
+
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
+
+// FORCE root route
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 
 const app = express();
 
@@ -15,7 +28,7 @@ let bus = {
   waitingCount: 0
 };
 
-// Simulate time passing every 5 seconds
+// Simulate time passing
 setInterval(() => {
   if (bus.status === "Arrived") return;
 
@@ -25,21 +38,19 @@ setInterval(() => {
 
   if (bus.etaMinutes <= 0) {
     bus.status = "Arrived";
-    bus.etaMinutes = 0;
   }
 }, 5000);
 
-// API: get bus status
+// Get bus status
 app.get("/bus", (req, res) => {
   res.json(bus);
 });
 
-// API: crowd says still waiting
+// Crowd says still waiting
 app.get("/still-waiting", (req, res) => {
   bus.waitingCount += 1;
 
-  // Only delay after 3 confirmations
-  if (bus.waitingCount >= 3 && bus.status !== "Arrived") {
+  if (bus.waitingCount >= 3) {
     bus.delayMinutes += 2;
     bus.etaMinutes += 2;
     bus.status = "Delayed (confirmed by crowd)";
@@ -49,17 +60,12 @@ app.get("/still-waiting", (req, res) => {
   res.json(bus);
 });
 
-// API: bus arrived
+// Bus arrived
 app.get("/bus-arrived", (req, res) => {
   bus.status = "Arrived";
   bus.etaMinutes = 0;
   bus.waitingCount = 0;
   res.json(bus);
-});
-
-// Root route (important)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 const PORT = process.env.PORT || 3000;

@@ -16,7 +16,7 @@
     const API = "";
 
     async function loadStatus() {
-      const res = await fetch(API + "/bus");
+      const res = await fetch("/bus");
       const data = await res.json();
 
       document.getElementById("status").innerText =
@@ -27,12 +27,12 @@
     }
 
     async function stillWaiting() {
-      await fetch(API + "/still-waiting");
+      await fetch("/still-waiting");
       loadStatus();
     }
 
     async function busArrived() {
-      await fetch(API + "/bus-arrived");
+      await fetch("/bus-arrived");
       loadStatus();
     }
 

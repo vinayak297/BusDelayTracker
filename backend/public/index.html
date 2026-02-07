@@ -9,44 +9,35 @@
   <p id="status">Loading...</p>
   <p id="crowd"></p>
 
-  <button id="waitBtn" onclick="stillWaiting()">⏳ Still Waiting</button>
+  <button onclick="stillWaiting()">⏳ Still Waiting</button>
   <button onclick="busArrived()">✅ Bus Arrived</button>
 
   <script>
-    const API = "";
-
     async function loadStatus() {
-      const res = await fetch(API + "/bus");
+      const res = await fetch("/bus");
       const data = await res.json();
 
       document.getElementById("status").innerText =
         `Bus ${data.busNumber} | ETA: ${data.etaMinutes} min | Status: ${data.status}`;
 
-      const crowdRes = await fetch(API + "/crowd");
-      const crowd = await crowdRes.json();
-
       document.getElementById("crowd").innerText =
-        `Waiting confirmations: ${crowd.waitingCount} / ${crowd.needed}`;
+        data.status !== "Arrived"
+          ? `Crowd confirmations: ${data.waitingCount} / 3`
+          : "";
     }
 
     async function stillWaiting() {
-      const btn = document.getElementById("waitBtn");
-      btn.disabled = true;
-
-      await fetch(API + "/still-waiting");
-      await loadStatus();
-
-      setTimeout(() => {
-        btn.disabled = false;
-      }, 5000);
+      await fetch("/still-waiting");
+      loadStatus();
     }
 
     async function busArrived() {
-      await fetch(API + "/bus-arrived");
+      await fetch("/bus-arrived");
       loadStatus();
     }
 
     loadStatus();
+    setInterval(loadStatus, 5000);
   </script>
 </body>
 </html>

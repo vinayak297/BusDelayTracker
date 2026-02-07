@@ -1,9 +1,7 @@
 const express = require("express");
 const path = require("path");
-const app = express();
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, "public")));
+const app = express();
 
 // In-memory bus state
 let bus = {
@@ -14,7 +12,7 @@ let bus = {
   waitingCount: 0
 };
 
-// Simulate time passing
+// Simulate time passing every 5 seconds
 setInterval(() => {
   if (bus.status === "Arrived") return;
 
@@ -27,14 +25,27 @@ setInterval(() => {
   }
 }, 5000);
 
-// API routes
+// Serve frontend
+app.use(express.static(path.join(__dirname, "public")));
+
+// API: get bus status
 app.get("/bus", (req, res) => {
   res.json(bus);
 });
 
+// API: get crowd info
+app.get("/crowd", (req, res) => {
+  res.json({
+    waitingCount: bus.waitingCount,
+    needed: 3
+  });
+});
+
+// Crowd says: still waiting
 app.get("/still-waiting", (req, res) => {
   bus.waitingCount += 1;
 
+  // Only delay after 3 confirmations
   if (bus.waitingCount >= 3) {
     bus.delayMinutes += 2;
     bus.etaMinutes += 2;
@@ -45,9 +56,12 @@ app.get("/still-waiting", (req, res) => {
   res.json(bus);
 });
 
+// Crowd confirms arrival
 app.get("/bus-arrived", (req, res) => {
   bus.status = "Arrived";
   bus.etaMinutes = 0;
+  bus.waitingCount = 0;
+
   res.json(bus);
 });
 

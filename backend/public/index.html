@@ -2,32 +2,47 @@
 <html>
 <head>
   <title>Bus Delay Tracker</title>
-  <meta charset="UTF-8" />
 </head>
 <body>
   <h1>🚌 Bus Delay Tracker</h1>
 
   <p id="status">Loading...</p>
+  <p id="crowd"></p>
 
-  <button onclick="stillWaiting()">⏳ Still Waiting</button>
+  <button id="waitBtn" onclick="stillWaiting()">⏳ Still Waiting</button>
   <button onclick="busArrived()">✅ Bus Arrived</button>
 
   <script>
+    const API = "";
+
     async function loadStatus() {
-      const res = await fetch("/bus");
+      const res = await fetch(API + "/bus");
       const data = await res.json();
 
       document.getElementById("status").innerText =
         `Bus ${data.busNumber} | ETA: ${data.etaMinutes} min | Status: ${data.status}`;
+
+      const crowdRes = await fetch(API + "/crowd");
+      const crowd = await crowdRes.json();
+
+      document.getElementById("crowd").innerText =
+        `Waiting confirmations: ${crowd.waitingCount} / ${crowd.needed}`;
     }
 
     async function stillWaiting() {
-      await fetch("/still-waiting");
-      loadStatus();
+      const btn = document.getElementById("waitBtn");
+      btn.disabled = true;
+
+      await fetch(API + "/still-waiting");
+      await loadStatus();
+
+      setTimeout(() => {
+        btn.disabled = false;
+      }, 5000);
     }
 
     async function busArrived() {
-      await fetch("/bus-arrived");
+      await fetch(API + "/bus-arrived");
       loadStatus();
     }
 

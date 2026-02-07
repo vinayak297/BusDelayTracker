@@ -13,31 +13,30 @@
   <button onclick="busArrived()">✅ Bus Arrived</button>
 
   <script>
+    const API = "";
+
     async function loadStatus() {
-      const res = await fetch("/bus");
+      const res = await fetch(API + "/bus");
       const data = await res.json();
 
       document.getElementById("status").innerText =
         `Bus ${data.busNumber} | ETA: ${data.etaMinutes} min | Status: ${data.status}`;
 
       document.getElementById("crowd").innerText =
-        data.status !== "Arrived"
-          ? `Crowd confirmations: ${data.waitingCount} / 3`
-          : "";
+        `Crowd confirmations: ${data.waitingCount} / 3`;
     }
 
     async function stillWaiting() {
-      await fetch("/still-waiting");
+      await fetch(API + "/still-waiting");
       loadStatus();
     }
 
     async function busArrived() {
-      await fetch("/bus-arrived");
+      await fetch(API + "/bus-arrived");
       loadStatus();
     }
 
     loadStatus();
-    setInterval(loadStatus, 5000);
   </script>
 </body>
 </html>

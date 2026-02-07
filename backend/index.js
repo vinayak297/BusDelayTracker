@@ -1,56 +1,43 @@
 const express = require("express");
 const path = require("path");
-const express = require("express");
-const path = require("path");
 
 const app = express();
 
-// Serve static files
+// ================= FRONTEND =================
 app.use(express.static(path.join(__dirname, "public")));
 
-// FORCE root route
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-
-const app = express();
-
-// Serve frontend
-app.use(express.static(path.join(__dirname, "public")));
-
-// In-memory bus state
+// ================= BUS STATE =================
 let bus = {
   busNumber: "23A",
   etaMinutes: 5,
   delayMinutes: 0,
   status: "On the way",
-  waitingCount: 0
+  waitingCount: 0,
+  requiredConfirmations: 3
 };
 
-// Simulate time passing
+// Simulate time
 setInterval(() => {
   if (bus.status === "Arrived") return;
-
-  if (bus.etaMinutes > 0) {
-    bus.etaMinutes -= 1;
-  }
-
-  if (bus.etaMinutes <= 0) {
-    bus.status = "Arrived";
-  }
+  if (bus.etaMinutes > 0) bus.etaMinutes -= 1;
+  if (bus.etaMinutes === 0) bus.status = "Arrived";
 }, 5000);
 
-// Get bus status
+// ================= API =================
 app.get("/bus", (req, res) => {
   res.json(bus);
 });
 
-// Crowd says still waiting
 app.get("/still-waiting", (req, res) => {
-  bus.waitingCount += 1;
+  if (bus.status === "Arrived") return res.json(bus);
 
-  if (bus.waitingCount >= 3) {
+  bus.waitingCount++;
+
+  if (bus.waitingCount >= bus.requiredConfirmations) {
     bus.delayMinutes += 2;
     bus.etaMinutes += 2;
     bus.status = "Delayed (confirmed by crowd)";
@@ -60,7 +47,6 @@ app.get("/still-waiting", (req, res) => {
   res.json(bus);
 });
 
-// Bus arrived
 app.get("/bus-arrived", (req, res) => {
   bus.status = "Arrived";
   bus.etaMinutes = 0;
@@ -68,7 +54,8 @@ app.get("/bus-arrived", (req, res) => {
   res.json(bus);
 });
 
+// ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });
